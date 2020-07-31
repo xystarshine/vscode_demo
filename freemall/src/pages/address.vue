@@ -2,12 +2,7 @@
 <div>
     <nav-header></nav-header>
    <div class="nav-breadcrumb-wrap">
-    <div class="container">
-      <nav class="nav-breadcrumb">
-        <a href="/">首页</a>
-        <span>地址</span>
-      </nav>
-    </div>
+    <div class="container"><nav class="nav-breadcrumb"><a href="/">首页</a><span>地址</span></nav></div>
   </div>
   <!-- 地址确认 -->
   <div class="checkout-page">
