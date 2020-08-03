@@ -88,7 +88,7 @@
               </div>
               <div class="cart-tab-5">
                 <div class="cart-item-opration">
-                  <a href="javascript:;" class="item-edit-btn">
+                  <a href="javascript:;" class="item-edit-btn" @click="delCartConfirm(item)">
                     <svg class="icon icon-del">
                       <use xlink:href="#icon-del"></use>
                     </svg>
@@ -103,8 +103,8 @@
         <div class="cart-foot-inner">
           <div class="cart-foot-l">
             <div class="item-all-check">
-              <a href="javascipt:;">
-                <span class="checkbox-btn item-check-btn check">
+              <a href="javascipt:;" @click="toggleCheckAll">
+                <span class="checkbox-btn item-check-btn" v-bind:class="{'check':checkAllFlag}">
                   <svg class="icon icon-ok">
                     <use xlink:href="#icon-ok" /></svg>
                 </span>
@@ -114,36 +114,26 @@
           </div>
           <div class="cart-foot-r">
             <div class="item-total">
-              总价: <span class="total-price">￥89.00元</span>
+              总价: <span class="total-price">{{totalPrice| currency}} </span>
             </div>
             <div class="btn-wrap">
-              <a class="btn btn--red btn--dis">结算</a>
+              <a class="btn btn--red " v-bind:class="{'btn--dis':!checkedCount}" @click="checkOut">结算</a>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div style="display: none;">
-    <div class="md-modal modal-msg md-modal-transition md-show">
-      <div class="md-modal-inner">
-        <div class="md-top">
-          <button class="md-close">关闭</button>
-        </div>
-        <div class="md-content">
-          <div class="confirm-tips">
-            <p slot="message">你确认要删除此条数据吗?</p>
-          </div>
-          <div class="btn-wrap">
-            <a slot="btnGroup" class="btn btn--m" href="javascript:;">确认</a>
-            <a slot="btnGroup" class="btn btn--m btn--red" href="javascript:;">关闭</a>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="md-overlay"></div>
-  </div>
   <nav-footer></nav-footer>
+  <modal :mdShow="modalConfirm" v-on:close="closeModal">
+    <template v-slot:message>
+      <p>你确认要删除此条数据吗?</p>
+    </template>
+    <template v-slot:btnGroup>
+    <a slot="btnGroup" class="btn btn--m" href="javascript:;" @click="delCart">确认</a>
+    <a slot="btnGroup" class="btn btn--m btn--red" href="javascript:;" @click="modalConfirm=false">关闭</a>
+    </template>
+  </modal>
 </div>
 </template>
 
@@ -155,6 +145,8 @@ export default {
     name:'cart',
     data(){
       return{
+        modalConfirm:false,
+        delItem:'',//准备删除的对象
         cartList:[]
       }
   },
@@ -165,6 +157,30 @@ export default {
   },
   mounted(){
     this.init();
+  },
+  computed:{
+    checkAllFlag(){
+      //当数组中所有的对象都返回true的时候，我们整体才会返回true
+      return this.cartList.every((item)=>{
+        return item.checked;
+      })
+    },
+    totalPrice(){
+      let money=0;
+      this.cartList.forEach((item)=>{
+        if(item.checked)
+        {
+          money+=item.productNum*item.productPrice;
+        }
+      })
+      return money;
+    },
+    //判断购物车是否有选中的商品
+    checkedCount(){
+      return this.cartList.some((item)=>{
+        return item.checked;
+      })
+    }
   },
   filters:{
     currency(value){
@@ -192,6 +208,39 @@ export default {
         item.checked=!item.checked;
       }
 
+    },
+    //删除数据确认框
+    delCartConfirm(item){
+      this.delItem=item;
+      this.modalConfirm=true;
+    },
+    closeModal(){
+      this.modalConfirm=false;
+    },
+    //删除购车数据
+    delCart(){
+      let delItem=this.delItem;
+      this.cartList.forEach((item,index)=>{
+          if(delItem.productId==item.productId){
+            this.cartList.splice(index,1);
+            this.modalConfirm=false;
+          }
+        }
+      ) 
+    },
+    //全选和反选
+    toggleCheckAll(){
+      let flag=!this.checkAllFlag;
+      this.cartList.forEach((item)=>{
+        item.checked=flag;
+      })
+    },
+    checkOut(){
+      if(this.checkedCount){
+        this.$router.push({
+          path:'/address'
+        })
+      }
     }
 
   }
